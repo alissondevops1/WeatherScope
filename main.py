@@ -179,11 +179,16 @@ class WeatherApp(QWidget):
             f"💧 Humidity: {humidity}%\n"
             f"🌬 Wind: {wind} m/s"
         )
-        if city not in [
+        cities = [
             self.history_list.item(i).text()
             for i in range(self.history_list.count())
-        ]:
-            self.history_list.addItem(city)
+        ]
+
+        if city not in cities:
+            self.history_list.insertItem(0, city)
+
+        if self.history_list.count() > 5:
+            self.history_list.takeItem(5)
 
     def show_error(self, message):
         self.result_label.setText(message)
