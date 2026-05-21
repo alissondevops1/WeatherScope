@@ -3,9 +3,10 @@ import sys
 import requests
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel,
-    QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout
+    QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QListWidget
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 
 
 class WeatherApp(QWidget):
@@ -20,15 +21,19 @@ class WeatherApp(QWidget):
         self.city_input = QLineEdit()
         self.search_button = QPushButton("Search")
         self.refresh_button = QPushButton("Refresh")
+        self.clear_button = QPushButton("Clear")
 
         self.result_label = QLabel("")
         self.emoji_label = QLabel("")
         self.details_label = QLabel("")
+        self.history_label = QLabel("Recent searches")
+        self.history_list = QListWidget()
 
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle("Weather App")
+        self.setWindowIcon(QIcon("assets/icons/weather.png"))
         self.setFixedSize(400, 500)
 
         # Layout principal
@@ -37,6 +42,7 @@ class WeatherApp(QWidget):
 
         button_layout.addWidget(self.search_button)
         button_layout.addWidget(self.refresh_button)
+        button_layout.addWidget(self.clear_button)
 
         main_layout.addWidget(self.city_label)
         main_layout.addWidget(self.city_input)
@@ -44,12 +50,16 @@ class WeatherApp(QWidget):
         main_layout.addWidget(self.result_label)
         main_layout.addWidget(self.emoji_label)
         main_layout.addWidget(self.details_label)
+        main_layout.addWidget(self.history_label)
+        main_layout.addWidget(self.history_list)
 
         self.setLayout(main_layout)
 
         # 🔗 Conexões
         self.search_button.clicked.connect(self.get_weather)
         self.refresh_button.clicked.connect(self.get_weather)
+        self.clear_button.clicked.connect(self.clear_fields)
+        self.history_list.itemClicked.connect(self.load_history_city)
         self.city_input.returnPressed.connect(self.get_weather)
 
         # 🎯 Alinhamento
@@ -169,11 +179,26 @@ class WeatherApp(QWidget):
             f"💧 Humidity: {humidity}%\n"
             f"🌬 Wind: {wind} m/s"
         )
+        if city not in [
+            self.history_list.item(i).text()
+            for i in range(self.history_list.count())
+        ]:
+            self.history_list.addItem(city)
 
     def show_error(self, message):
         self.result_label.setText(message)
         self.emoji_label.clear()
         self.details_label.clear()
+
+    def clear_fields(self):
+        self.city_input.clear()
+        self.result_label.clear()
+        self.emoji_label.clear()
+        self.details_label.clear()
+
+    def load_history_city(self, item):
+        self.city_input.setText(item.text())
+        self.get_weather()
 
     @staticmethod
     def get_weather_emoji(weather_id):
